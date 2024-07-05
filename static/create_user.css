@@ -3,49 +3,101 @@
     color: white;
     user-select: none;
 }
-form{
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: #e9ecef;
+    margin: 0;
+    padding: 0;
+}
+
+.form-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: calc(100vh - 100px); 
+    padding-top: 100px;
+}
+
+.signup-form {
+    background-color: #fff;
+    padding: 40px 30px;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 500px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    position: relative;
-    top: 60px;
 }
 
-.form-group{
-    width: 60%;
-
+.signup-form h1 {
+    margin-bottom: 20px;
+    font-size: 24px;
+    color: #333;
 }
 
-.form-control:focus,
-.form-control{
+.signup-form .form-group {
     width: 100%;
-    border: 1px solid lightgray;
-    outline: 0;
+    margin-bottom: 20px;
+}
+
+.signup-form .form-group label {
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #555;
+}
+
+.signup-form .form-control {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
     border-radius: 8px;
     box-shadow: none;
+    outline: none;
+    transition: border-color 0.3s ease;
 }
 
-.btn:hover,
-.btn:focus,
-.btn{
-    width: 59%;
-    outline: 0;
-
-    color: white;
+.signup-form .form-control:focus {
+    border-color: #007bff;
 }
 
-#re-password,
-#password{
-    width: 95%;
-    border: none;
-}
-
-#password_container{
+.signup-form .password-container {
     display: flex;
-    flex-direction: row;
     align-items: center;
     width: 100%;
-    outline: 0;
-    border: 1px solid lightgray;
+    border: 1px solid #ccc;
     border-radius: 8px;
+    padding-right: 10px;
+}
+
+.signup-form .password-container input {
+    flex: 1;
+    border: none;
+    outline: none;
+    padding: 10px;
+    border-radius: 8px 0 0 8px;
+}
+
+.signup-form .password-container .password-icon {
+    cursor: pointer;
+    width: 20px;
+}
+
+.signup-form .btn {
+    width: 100%;
+    padding: 12px;
+    background-color: #007bff;
+    border: none;
+    border-radius: 8px;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    outline: none;
+}
+
+.signup-form .btn:hover,
+.signup-form .btn:focus {
+    background-color: #0056b3;
 }

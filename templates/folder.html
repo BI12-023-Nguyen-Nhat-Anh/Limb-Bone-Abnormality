@@ -2,92 +2,128 @@
 {% block title %}Folder{% endblock %}
 {% block content %}
 <link rel="stylesheet" href="../static/folder.css">
-  <div class="form">
-    <div class="step">
-      {% set sorted_subfiles = subfiles | sort(attribute='name') %}
-      <img src="../static/images/step1_color.png" alt="Step 1" class="step-1 step-image">
-      {% if sorted_subfiles |length == 2 %}
-        <img src="../static/images/step2_color.png" alt="Step 1" class="step-1 step-image">
-        {% else %}
-        <img src="../static/images/step2.png" alt="Step 1" class="step-1 step-image">
-      {% endif %}
-      {% if output |length != 0 %}
-        <img src="../static/images/step3_color.png" alt="Step 3" class="step-3 step-image">
-      {% else %}
-        <img src="../static/images/step3.png" alt="Step 3" class="step-3 step-image">
-      {% endif %}
-    </div>
-
-    <h2 class="title head">Folder: {{ folder.name }}</h2>
-    
-    <!-- Display files -->
-    <h2 class="title head">Upload files:</h2>
-    <p class="title"><i>Upload 2 fastq.gz files</i></p>
-    <ul>
-      {% for subfile in subfiles %}
-        {% if subfile.name.endswith('.gz') %}
-          <div class="file-list name-file">
-            <li>{{ subfile.name }}</li>
-            <button type="button" class="close" onclick="deleteSubFile('{{ subfile.id }}','{{ subfile.folder_id }}')">
-              <span aria-hidden="true">&times;</span>
-            </button>
-          </div>
-        {% endif %}
-      {% endfor %}
-
-    </ul>
-  
- <!-- Create new file -->
- <form action="/folder/{{ folder.id }}" method="post" enctype="multipart/form-data" id="uploadForm">
-  <div id="fileInputContainer">
-	  {% if subfiles|length>=2 %}
-    <button type="button" class="btn-primary btn execute-button" id="addFileBtn" onclick="executeF('{{ folder.id }}')">Analyze FastQ files</button>
+<div class="form">
+  <div class="step">
+    {% set sorted_subfiles = subfiles | sort(attribute='name') %}
+    <img src="../static/images/step1_color.png" alt="Step 1" class="step-1 step-image">
+    {% if sorted_subfiles |length >= 2 %}
+    <img src="../static/images/step2_color.png" alt="Step 1" class="step-1 step-image">
     {% else %}
-    <ul>
-      {%if subfiles|length==0%}
-      <div class="file-list box-list">
-        <li><input type="file" id="inputFile1" name="inputFile1" accept=".txt, .fastq, .gz"></li>
-      </div>
-      <div class="file-list box-list">
-        <li><input type="file" id="inputFile2" name="inputFile2" accept=".txt, .fastq, .gz"></li>
-      </div>
-      {%elif subfiles[0].name.endswith("_2.fastq.gz")%}
-      <div class="file-list box-list">
-        <li><input type="file" id="inputFile1" name="inputFile1" accept=".txt, .fastq, .gz"></li>
-      </div>
-      {%elif subfiles[0].name.endswith("_1.fastq.gz")%}
-      <div class="file-list box-list">
-        <li><input type="file" id="inputFile2" name="inputFile2" accept=".txt, .fastq, .gz"></li>
-      </div>
-      {%endif%}
-    </ul>
-      <button type="submit" class="btn btn-primary">Add File</button>
+    <img src="../static/images/step2.png" alt="Step 1" class="step-1 step-image">
+    {% endif %}
+    {% if output |length != 0 %}
+    <img src="../static/images/step3_color.png" alt="Step 3" class="step-3 step-image">
+    {% else %}
+    <img src="../static/images/step3.png" alt="Step 3" class="step-3 step-image">
     {% endif %}
   </div>
-</form>
-  
-    <!-- Display output files -->
-    <div class="ouput-file">
-      <h2 class="title head">Output:</h2>
-      <p class="title"><i>The output will be a CSV file containing annotated genomic variations obtained by converting filtered VCF files to AVinput format.</i></p>
-      <ul>
-         {% for subfile in output %}
-          {% if subfile.name.endswith('.csv') %}
-            <div class="file-list name-file">
-              <li><a href="{{ url_for('get_file', file_id=subfile.id) }}">{{ subfile.name }}</a></li>
-              <button type="button" class="close" onclick="deleteSubFile('{{ subfile.id }}','{{ subfile.folder_id }}')">
-                <span aria-hidden="true">&times;</span>
-              </button>
-            </div>
-          {% endif %}
-        {% endfor %}
-      </ul>
+
+  <h2 class="title head">Folder: {{ folder.name }}</h2>
+
+  Display files
+  <h2 class="title head">Upload files:</h2>
+  <p class="title"><i>Upload 2 fastq.gz files</i></p>
+  <ul>
+    {% for subfile in subfiles %}
+    {% if subfile.name.endswith('.paired.fastq') %}
+    <div class="file-list name-file">
+      <li>{{ subfile.name }}</li>
+      <button type="button" class="close" onclick="deleteSubFile('{{ subfile.id }}','{{ subfile.folder_id }}')">
+        <span aria-hidden="true">&times;</span>
+      </button>
     </div>
+    {% elif subfile.name.endswith('.fastq.gz') and subfiles|length <= 2%}
+    <div class="file-list name-file">
+      <li>{{ subfile.name }}</li>
+      <button type="button" class="close" onclick="deleteSubFile('{{ subfile.id }}','{{ subfile.folder_id }}')">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+    {% endif %}
+    {% endfor %}
+
+  </ul>
+
+  <!-- Create new file -->
+  <form action="/folder/{{ folder.id }}" method="post" enctype="multipart/form-data" id="uploadForm">
+    <div id="fileInputContainer">
+      {% if subfiles|length>=2 %}
+      <button type="button" class="btn-primary btn execute-button" id="addFileBtn" onclick="openPopup()">Analyze FastQ
+        files</button>
+      {% else %}
+    <ul>
+      {% if subfiles|length==0 %}
+      <div class="file-list name-file">
+        <li><input type="file" id="inputFile1" name="inputFile1" accept=".txt, .fastq, .gz"></li>
+      </div>
+      <div class="file-list name-file">
+        <li><input type="file" id="inputFile2" name="inputFile2" accept=".txt, .fastq, .gz"></li>
+      </div>
+      {% elif subfiles[0].name.endswith("_2.fastq.gz") %}
+      <div class="file-list name-file">
+        <li><input type="file" id="inputFile1" name="inputFile1" accept=".txt, .fastq, .gz"></li>
+      </div>
+      {% elif subfiles[0].name.endswith("_1.fastq.gz") %}
+      <div class="file-list name-file">
+        <li><input type="file" id="inputFile2" name="inputFile2" accept=".txt, .fastq, .gz"></li>
+      </div>
+      {% endif %}
+    </ul>
+    <button type="submit" class="btn btn-primary">Add File</button>
+    {% endif %}
+</div>
+</form>
+
+<!-- Display output files -->
+<div class="ouput-file">
+  <h2 class="title head">Output:</h2>
+  <p class="title"><i>The output will be a CSV file containing annotated genomic variations obtained by converting
+      filtered VCF files to AVinput format.</i></p>
+  <ul>
+    {% for subfile in output %}
+    {% if subfile.name.endswith('.csv') %}
+    <div class="file-list name-file">
+      <li><a href="{{ url_for('get_file', file_id=subfile.id) }}">{{ subfile.name }}</a></li>
+      <button type="button" class="close" onclick="deleteSubFile('{{ subfile.id }}','{{ subfile.folder_id }}')">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+    {% elif subfile.name.endswith('.html') %}
+    <div class="file-list name-file">
+      <li><a href="{{ url_for('get_file', file_id=subfile.id) }}">{{ subfile.name }}</a></li>
+      <button type="button" class="close" onclick="deleteSubFile('{{ subfile.id }}','{{ subfile.folder_id }}')">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+    {% endif %}
+    {% endfor %}
+  </ul>
+</div>
+</div>
+
+<div class="popup-overlay hide_popup" id="popup-overlay"></div>
+<div class="popup hide_popup" id="popup">
+  <div class="popup-content">
+    <div class="popup-header">Select your options :</div>
+    <form id="checkboxForm">
+      <label class="checkbox-label"><input type="checkbox" name="option" value="fastqc"> Check DNA quality with
+        Fastqc</label>
+      <label class="checkbox-label"><input type="checkbox" name="option" value="trimmomatic"> Improve DNA Quality and
+        preparing the raw sequencing data with Trimmomatic</label>
+      <label class="checkbox-label"><input type="checkbox" name="option" value="map_sort"> Mapping and Sorting</label>
+      <label class="checkbox-label"><input type="checkbox" name="option" value="process_filter"> Processing and
+        Filtering</label>
+      <label class="checkbox-label"><input type="checkbox" name="option" value="call_filter"> Variant Calling and
+        Filtration</label>
+      <label class="checkbox-label"><input type="checkbox" name="option" value="annotation"> Annotation</label>
+      <label class="checkbox-label"><input type="checkbox" id="selectAll" value="selectall"> Select All</label>
+      <div class="button-group">
+        <button type="button" class="close-btn" onclick="closePopup()">Close</button>
+        <!-- <button type="button" class="execute-btn" onclick="executeF('{{ folder.id }}')">Execute</button> -->
+        <button type="button" class="execute-btn" onclick="executeAction('{{ folder.id }}')">Execute</button>
+      </div>
+    </form>
   </div>
-
-  <script>
-
-
-  </script>
+</div>
+<script src="../static/folder.js"></script>
 {% endblock %}
-

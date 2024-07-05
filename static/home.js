@@ -1,12 +1,12 @@
-function uploadFile() {
-    var fileInput = document.getElementById('fileInput');
-    var file = fileInput.files[0];
+// JavaScript for handling modal
+let addModal = document.getElementById('addModal');
 
-    if (file) {
-        var formData = new FormData();
-        formData.append('file', file);
-        document.getElementById('result').innerHTML = 'File uploaded: ' + file.name;
-    } else {
-        alert('Please choose a file to upload.');
-    }
+// Function to open modal
+function openAddModal() {
+    addModal.style.display = 'block';
+}
+
+// Function to close modal
+function closeAddModal() {
+    addModal.style.display = 'none';
 }

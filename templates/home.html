@@ -1,40 +1,131 @@
-{%extends "base.html"%}
-{%block title%}Home{%endblock%}
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
 {% block content %}
 <link rel="stylesheet" href="../static/home.css">
-<div class="form">
-  <br>
-  <div class="head">
-    <h2 class="title">Folders list</h2>
-      <!-- Create new folder -->
+<div class="home_container">
+  <div class="header">
+    <h2 class="title">Folders List</h2>
+
     <form action="/folder" method="post" class="input">
-      <input type="text" id="folderName" name="folderName" placeholder="Enter folder name">
-
-      <button type="submit" class="btn">Create Folder</button>
-  </form>
+      <div class="create-folder">
+        <input type="text" id="folderName" name="folderName" placeholder="Enter folder name">
+        <button class="btn" onclick="CreateFolder()">Create Folder</button>
+      </div>
+    </form>
   </div>
-  </div>
-  <ul class="form">
-    <div class="file-list title-folder">
-      <li>Name</li>
-    </div>
-    {% for folder in folders %}
-    {% if folder.parent_folder_id is none %}
-            <div class="file-list">
-              <a href="{{ url_for('get_folder', folder_id=folder.id) }}" class="link">
-                <li>
-                  <img src="/static//images/Folder.png" class="icon-folder">
-                  {{ folder.name }}
-                </li>
-              </a>
-              <button type="button" class="close" onclick="deleteFolder('{{ folder.id }}')">
-                <span aria-hidden="true">&times;</span>
-              </button>
-            </div>
-          {% endif %}
-        {% endfor %}
-      </ul>
-  
-  
+  <table class="folders-table">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody id="foldersTableBody">
+      <!-- Folders will be dynamically added here -->
+    </tbody>
+  </table>
+</div>
+<div class="folder_container"></div>
 
+<script>
+  let current_user = JSON.parse('{{ user | tojson | safe }}');
+
+  function mainFetch() {
+    fetch(`http://folder.ulake.usth.edu.vn/api/folder/root/${current_user.id}`, {
+      method: "GET",
+      headers: {
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${current_user.token}`
+      }
+    })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+          alert("Network response was not ok");
+        }
+        return response.json();
+      })
+      .then(data => {
+        let folders = data.resp.subFolders;
+        let files = data.resp.files;
+        const foldersTableBody = document.getElementById('foldersTableBody');
+        foldersTableBody.innerHTML = '';
+
+        if (folders.length > 0) {
+          folders.forEach(folder => {
+            console.log(folder)
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+            <td><a href="/folder/${folder['id']}" class="link">${folder.id}</a></td>
+            <td><a href="/folder/${folder['id']}" class="link">${folder.name}</a></td>
+            <td><a href="/folder/${folder['id']}" class="link">Folder</td>
+            <td>
+                <button class="delete" onclick="deleteFolder(${folder.id})">&times;</button>
+            </td>
+        `;
+            foldersTableBody.appendChild(tr);
+          });
+        }
+      })
+      .catch(error => {
+        console.error('Error fetching folders:', error);
+        alert('Error fetching folders:', error);
+      });
+  }
+
+  /*function viewFile(file) {
+    const body_param = new URLSearchParams();
+    body_param.append('id', file.id);
+    body_param.append('bearer', current_user.token);
+    fetch(`http://dashboard.ulake.usth.edu.vn/api/object/content/${file.name}`, {
+      method: "POST",
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Accept': '*\*'
+      },
+      body: body_param.toString()
+    })
+      .then(response => {
+        if (!response.ok) {
+          alert("Network response was not ok");
+          throw new Error("Network response was not ok");
+        }
+        return response.blob();
+      })
+      .then(data => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const text = reader.result;
+          const formattedText = text.replace(/\n/g, '<p>');
+          const newTab = window.open();
+          newTab.document.write(`
+                <html>
+                    <head>
+                        <title>File Content</title>
+                        <style>
+                            pre {
+                                white-space: pre-wrap;
+                                word-wrap: break-word;
+                                font-family: Arial, sans-serif;
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        <pre>${formattedText}</pre>
+                    </body>
+                </html>
+            `);
+          newTab.document.close();
+        };
+        reader.readAsText(data, 'UTF-8');
+      })
+      .catch(error => {
+        alert("Fail to read file: " + error);
+        console.error("Fail to read file: " + error);
+      })
+  }*/
+  mainFetch();
+</script>
 {% endblock %}

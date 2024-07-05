@@ -8,6 +8,7 @@ class User(db.Model, UserMixin):
     email = db.Column(db.String(50))
     username = db.Column(db.String(50))
     password = db.Column(db.String(50))
+    token = db.Column(db.String(50))
 
 class Folder(db.Model):
     id = db.Column(db.Integer, primary_key = True)

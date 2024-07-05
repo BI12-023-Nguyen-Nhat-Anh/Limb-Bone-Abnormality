@@ -1,16 +1,123 @@
 {% extends 'base.html' %}
 {% block title %}Columns{% endblock %}
 {% block content %}
-<link rel="stylesheet" href="../static/display_columns.css">
+<link rel="stylesheet" href="{{ url_for('static', filename='display_columns.css') }}">
 <br>
-    <div class="form">
-        <h1>File: {{file.name}}</h1>
+<div class="form">
+    <h1>File: {{ file.name }}</h1>
 
-            <h2>Display Attribute Columns</h2>
-            {{ table_html | safe }}
-
-        <a href="{{url_for('download_file', file_id=file.id)}}"><button>Download</button></a>
+    <h2>Display Attribute Columns</h2>
+    <table id="data-table" class="table table-striped">
+        <thead>
+            <tr id="column"></tr>
+        </thead>
+        <tbody id="row">
+        </tbody>
+    </table>
+    <a href="{{ url_for('download_file', file_id=file.id) }}"><button>Download</button></a>
+</div>
+<div id="unique-values-modal" class="modal">
+    <div class="modal-content">
+        <span class="close-button" onclick="closeModal()">&times;</span>
+        <h3 id="modal-column-name"></h3>
+        <div id="unique-values-list"></div>
     </div>
-<script src="../static/display_columns.js"></script>
-{% endblock %}
+</div>
+<script>
+    let columns = JSON.parse('{{ columns | tojson }}');
+    let rows_json = '{{ rows | tojson }}';
+    rows_json = rows_json.slice(1, -1);
+    rows_json = rows_json.split("], [")
+    let rows = rows_json.map(array => {
+        array = array.replace("[", "").replace("]", "").replace(/\"/g, "");
+        return array.split(", ").map(element => element.trim());
+    }).filter(array => array.some(element => element.length > 0));
 
+    display(rows);
+    function display(rows) {
+        let col = document.getElementById('column');
+        col.innerHTML = '';
+        columns.forEach(function (element) {
+            col.innerHTML += `<th>${element} <button class="unique-button" alt="Filter" onclick="showUniqueValues('${element}')"><img src="/static/images/filter.png" alt="Filter" class="filter"></button></th>`;
+        });
+
+        let row = document.getElementById('row');
+        row.innerHTML = '';
+        rows.forEach(function (element, rowIndex) {
+            if (rowIndex >= 20) {
+                return;
+            }
+            let rowHTML = '<tr>';
+            for (let i = 0; i < element.length; i++) {
+                rowHTML += `<td>${element[i]}</td>`;
+            }
+            rowHTML += '</tr>';
+            row.innerHTML += rowHTML;
+        });
+    }
+
+    function showUniqueValues(columnIndex) {
+        const uniqueValues = new Set();
+        uniqueValues.add("Select all");
+        let cnt = 0;
+
+        columns.forEach(function (element, index) {
+            if (element === columnIndex) {
+                cnt = index;
+            }
+        });
+
+        rows.forEach(function (item) {
+            uniqueValues.add(item[cnt]);
+        });
+
+        const modal = document.getElementById("unique-values-modal");
+        const modalColumnName = document.getElementById("modal-column-name");
+        const uniqueValuesList = document.getElementById("unique-values-list");
+
+        modalColumnName.innerText = `Unique Values for ${columnIndex}`;
+        uniqueValuesList.innerHTML = '';
+
+        uniqueValues.forEach(value => {
+            const button = document.createElement("button");
+            button.innerText = value;
+            button.classList.add("unique-value-button");
+            button.id = value;
+            uniqueValuesList.appendChild(button);
+        });
+        modal.style.display = "block";
+        let cell = document.getElementsByClassName('unique-value-button');
+        for (let i = 0; i < cell.length; i++) {
+            cell[i].addEventListener('click', function () {
+                return unique_selected(this.id, cnt);
+            });
+        }
+    }
+
+    function closeModal() {
+        const modal = document.getElementById("unique-values-modal");
+        modal.style.display = "none";
+    }
+
+    window.onclick = function (event) {
+        const modal = document.getElementById("unique-values-modal");
+        if (event.target === modal) {
+            modal.style.display = "none";
+        }
+    }
+
+    function unique_selected(id, index) {
+        let unique_array = [];
+        if (id == "Select all") {
+            unique_array = rows;
+        } else {
+            for (let i = 0; i < rows.length; i++) {
+                if (rows[i][index] == id) {
+                    unique_array.push(rows[i]);
+                }
+            }
+        }
+        display(unique_array);
+    }
+</script>
+{% endblock %}

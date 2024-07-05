@@ -1,26 +1,26 @@
-function deleteUser(customerId){
-    fetch('/delete-user',{
+function deleteUser(customerId) {
+    fetch('/delete-user', {
         method: 'POST',
-        body: JSON.stringify({userId: customerId}),
-    }).then((_res) =>{
-	    window.location.href="/admin";
+        body: JSON.stringify({ userId: customerId }),
+    }).then((_res) => {
+        window.location.href = "/admin";
     });
 }
 
-function changeRole(customerId){
-    fetch(`/change_role`,{
+function changeRole(customerId) {
+    fetch(`/change_role`, {
         method: 'POST',
-        body: JSON.stringify({userId: customerId}),
-    }).then((_res) =>{
-	    window.location.href="/admin";
+        body: JSON.stringify({ userId: customerId }),
+    }).then((_res) => {
+        window.location.href = "/admin";
         window.location.reload();
     });
 }
 
 function toggleSlide(slideId) {
     var sliderContent = document.getElementById('sliderContent');
-    let btnA=document.getElementById("user_btn")
-    let btnB=document.getElementById("admin_btn")
+    let btnA = document.getElementById("user_btn")
+    let btnB = document.getElementById("admin_btn")
     if (slideId === 'A') {
         sliderContent.style.transform = 'translateX(0)';
         btnA.classList.add("active");

@@ -4,77 +4,137 @@
 
 {% block content %}
 <link rel="stylesheet" href="../static/admin.css">
+
 <body>
     <div class="admin_body">
-        <br>
         <h1 align="center">Welcome back, admin</h1>
         <button onclick="toggleSlide('A')" id="user_btn" class="active">Users</button>
         <button onclick="toggleSlide('B')" id="admin_btn">Admins</button>
         <div class="slider-container">
-        <div class="slider-content" id="sliderContent">
-            <div class="slide" id="slideA">
-                <form action="" method="POST">
+            <div class="slider-content" id="sliderContent">
+                <div class="slide" id="slideA">
+                    <form action="" method="POST">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Id</th>
+                                    <th>UserName</th>
+                                    <th>Registered</th>
+                                </tr>
+                            </thead>
+                            <tbody id="userTableBody"></tbody>
+                        </table>
+                    </form>
+                </div>
+                <div class="slide" id="slideB">
                     <table>
                         <thead>
                             <tr>
-                                <th>Name</th>
-                                <th>Email</th>
-                                <th>Operation</th>
+                                <th>Id</th>
+                                <th>UserName</th>
+                                <th>Registered</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            {% for customer in user %}
-                            {% if customer.role==2 %}
-                            <tr>
-                                <td>{{ customer.username }}</td>
-                                <td>{{ customer.email }}</td>
-                                <td>
-                                    <button title="Delete user" id="rm_btn" onclick="deleteUser('{{ customer.id }}')">
-                                        <img src="../static/images/delete.png" alt="">
-                                    </button>
-                                    <button title="Change role" id="change_role" onclick="changeRole('{{ customer.id }}')">
-                                        <img src="../static/images/change_role.png" alt="">
-                                    </button>
-                                </td>
-                            </tr>
-                            {%endif%}
-                            {% endfor %}
-                        </tbody>
+                        <tbody id="adminTableBody"></tbody>
                     </table>
-                </form>
+                </div>
             </div>
-            <div class="slide" id="slideB">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Email</th>
-                            <th>Operation</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for customer in user %}
-                        {% if customer.role==3 %}
-                        <tr>
-                            <td>{{ customer.username }}</td>
-                            <td>{{ customer.email }}</td>
-                            <td>
-                                <button title="Delete user" id="rm_btn" onclick="deleteUser('{{ customer.id }}')">
-                                    <img src="../static/images/delete.png" alt="">
-                                </button>
-                                <button title="Change role" id="change_role" onclick="changeRole('{{ customer.id }}')">
-                                    <img src="../static/images/change_role.png" alt="">
-                                </button>
-                            </td>
-                        </tr>
-                        {%endif%}
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
         </div>
     </div>
+    <div id="userDetailModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>User Details</h2>
+            <p><strong>First Name:</strong> <span id="firstName"></span></p>
+            <p><strong>Last Name:</strong> <span id="lastName"></span></p>
+            <p><strong>Username:</strong> <span id="userName"></span></p>
+            <p><strong>Department:</strong> <span id="department"></span></p>
+            <p><strong>Status:</strong> <span id="status"></span></p>
+            <p><strong>Register Time:</strong> <span id="registerTime"></span></p>
+        </div>
+    </div>
+
 </body>
+
 <script src="../static/admin.js"></script>
+<script>
+    let current_user = JSON.parse('{{current_user | tojson}}');
+    fetch('http://user.ulake.usth.edu.vn/api/user', {
+        method: 'GET',
+        headers: {
+            'Accept': 'application/json',
+            'Authorization': `Bearer ${current_user.token}`
+        }
+    })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            const userTableBody = document.getElementById('userTableBody');
+            const adminTableBody = document.getElementById('adminTableBody');
+            let users = data.resp;
+            users.forEach(customer => {
+                let rows = '';
+                const row = document.createElement('tr');
+                rows += `
+                <td>${customer.id}</td>
+                <td class="table_username" onclick="userDetail('${customer.id}')">${customer.userName}</td>
+                <td>${new Date(customer.registerTime * 1000).toLocaleDateString()}</td>`;
+                row.innerHTML = rows;
+                if (customer.isAdmin == false) {
+                    userTableBody.appendChild(row);
+                } else if (customer.isAdmin == true) {
+                    adminTableBody.appendChild(row);
+                }
+            });
+        })
+        .catch(error => {
+            console.error(`Error: ${error}`)
+        });
+
+    function userDetail(userId) {
+        fetch(`http://user.ulake.usth.edu.vn/api/user/${userId}`, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'Authorization': `Bearer ${current_user.token}`
+            }
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                userInfo = data.resp;
+                document.getElementById('firstName').innerText = userInfo.firstName;
+                document.getElementById('lastName').innerText = userInfo.lastName;
+                document.getElementById('userName').innerText = userInfo.userName;
+                document.getElementById('department').innerText = userInfo.department || 'N/A';
+                document.getElementById('status').innerText = userInfo.status ? 'Active' : 'Inactive';
+                document.getElementById('registerTime').innerText = new Date(userInfo.registerTime * 1000).toLocaleString();
+
+                const modal = document.getElementById('userDetailModal');
+                modal.style.display = 'block';
+
+                const span = document.getElementsByClassName('close')[0];
+                span.onclick = function () {
+                    modal.style.display = 'none';
+                }
+
+                window.onclick = function (event) {
+                    if (event.target == modal) {
+                        modal.style.display = 'none';
+                    }
+                }
+            })
+            .catch(error => {
+                console.error("Error: " + error);
+            })
+    }
+</script>
 {% endblock %}
