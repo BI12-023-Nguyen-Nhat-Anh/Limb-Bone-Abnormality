@@ -7,11 +7,11 @@
     <form method="post">
         <h1>Select Attributes to Display</h1>
         <label for="selectAll">
-            <input type="checkbox" id="selectAll"> Select All
+            <input type="checkbox" id="selectAll" style="cursor: pointer;"> Select All
         </label>
         <br>
         {% for column in columns %}
-            <input type="checkbox" name="columns" value="{{ column }}" class="columnCheckbox" > {{ column }}<br>
+            <input type="checkbox" name="columns" value="{{ column }}" class="columnCheckbox" style="cursor: pointer;"> {{ column }}<br>
         {% endfor %}
         <br>
         <button type="submit">Show</button>
