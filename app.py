@@ -742,13 +742,9 @@ def copy_and_paste_file(source_file, destination_folder):
         else:
             print("Fail to create a file")
     except Exception as e:
-        print(f"Error: {e}")
-        
-def check_gay():
-    print("I'm gay")
-    
+        print(f"Error: {e}")    
 
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
-    app.run(host='0.0.0.0', port=2121, debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=True)
